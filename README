@@ -1,0 +1,23 @@
+WHAT IS IT?
+
+  slimebattery is one of the most lighweight battery systray icon
+  you can find. It depends only on GTK+. No other extra libs.
+  It has sever handy command line options, and it supports your
+  favorite icon theme (slimebattery can use faenza icon-theme,
+  elementary and others)
+
+COMPILE AND INSTALL
+
+  run in your terminal `make` to compile and `sudo make install`
+  to install.
+
+CLEAN AND UNINSTALL
+
+  run in your terminal `make clean` to remove the bin and 
+  `sudo make uninstall` to uninstall slimebattery
+  
+CREDITS
+
+  Enrico "Enrix835" Trotta <enrico{DOT}trt{AT}gmail.com>
+  Obviously: sed -e 's/{DOT}/./g' -e 's/{AT}/@/' README
+  
