@@ -8,10 +8,10 @@
  */
  
 /* #define DEBUG */
+#define ACPI_CMD "acpi"
 #define DEFAULT_ARRAY_SIZE 10
 #define DEFAULT_TIME_UPDATE 2
 
-const gchar * acpi_command = "acpi";
 gint opt_verbose = 0; 
 gint opt_time = DEFAULT_TIME_UPDATE;
 gint opt_other_theme = 0;
@@ -47,19 +47,21 @@ static void print_usage(void);
 
 static void update_status_battery(Battery * battery)
 {
-	if(strcmp(battery->status, "Charging"))
+	if(strcmp(battery->status, "Charging") == 0)
 		battery->batteryState = CHARGING;
-	else if(strcmp(battery->status, "Discharging"))
+	else if(strcmp(battery->status, "Discharging") == 0)
+		battery->batteryState = DISCHARGING;
+	else
 		battery->batteryState = DISCHARGING;
 }
 
 static gboolean update_status_tray(Battery * battery)
 {
 	gchar * icon_name = get_status_icon_name(battery);
-	gchar * acpi_out = get_acpi_output(acpi_command);
+	gchar * acpi_out = get_acpi_output(ACPI_CMD);
 
 	if(acpi_out == NULL) {
-		g_error("unable to run '%s'.", acpi_command);
+		g_error("unable to run '%s'.", ACPI_CMD);
 	}
 	
 	parse_acpi_output(battery, acpi_out);
@@ -89,7 +91,7 @@ static gchar * get_status_icon_name(Battery * battery)
 	GString * icon_name = g_string_new("notification-battery");
 	
 	if (battery->percentage < 20)
-		g_string_append(icon_name, "-low");
+		g_string_append(icon_name, "-000");
 	else if (battery->percentage < 40)
 		g_string_append(icon_name, "-020");
 	else if (battery->percentage < 80)

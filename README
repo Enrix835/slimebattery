@@ -1,7 +1,8 @@
 WHAT IS IT?
 
   slimebattery is one of the most lighweight battery systray icon
-  you can find. It depends only on GTK+. No other extra libs.
+  you can find. It depends only on GTK+ and you must have 'acpi'
+  installed. No other extra libs.
   It has sever handy command line options, and it supports your
   favorite icon theme (slimebattery can use faenza icon-theme,
   elementary and others)
@@ -18,6 +19,6 @@ CLEAN AND UNINSTALL
   
 CREDITS
 
-  Enrico "Enrix835" Trotta <enrico{DOT}trt{AT}gmail.com>
+  Enrico "Enrix835" Trotta <enrico{DOT}trt{AT}gmail{DOT}com>
   Obviously: sed -e 's/{DOT}/./g' -e 's/{AT}/@/' README
   
