@@ -110,7 +110,7 @@ static gchar * get_status_icon_name(Battery * battery)
 	
 	if (battery->percentage < 20)
 		g_string_append(icon_name, opt_other_theme == 1 ? "-caution" 
-			: "-caution");
+			: "-000");
 	else if (battery->percentage < 40)
 		g_string_append(icon_name, opt_other_theme == 1 ? "-low"
 			: "-020");
