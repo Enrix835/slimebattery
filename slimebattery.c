@@ -2,10 +2,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-
-/* TODO:
- *   add -c option
- */
  
 /* #define DEBUG */
 #define ACPI_CMD "acpi"
@@ -17,7 +13,7 @@ gint opt_time = DEFAULT_TIME_UPDATE;
 gint opt_other_theme = 0;
 gint opt_popup = 0;
 
-typedef enum batteryState{
+typedef enum batteryState {
 	CHARGING,
 	DISCHARGING,
 } BatteryState;
@@ -88,19 +84,25 @@ static gboolean update_status_tray(Battery * battery)
 
 static gchar * get_status_icon_name(Battery * battery)
 {
-	GString * icon_name = g_string_new("notification-battery");
+	GString * icon_name = g_string_new(opt_other_theme == 1 ? 
+		"battery" : "notification-battery" );
 	
 	if (battery->percentage < 20)
-		g_string_append(icon_name, "-000");
+		g_string_append(icon_name, opt_other_theme == 1 ? "-caution" 
+			: "-caution");
 	else if (battery->percentage < 40)
-		g_string_append(icon_name, "-020");
+		g_string_append(icon_name, opt_other_theme == 1 ? "-low"
+			: "-020");
 	else if (battery->percentage < 80)
-		g_string_append(icon_name, "-060");
+		g_string_append(icon_name, opt_other_theme == 1 ? "-good" 
+			: "-060");
 	else
-		g_string_append(icon_name, "-100");
+		g_string_append(icon_name, opt_other_theme == 1 ? "-full"
+			: "-100");
 	
 	if(battery->batteryState == CHARGING) {
-		g_string_append(icon_name, "-plugged");
+		g_string_append(icon_name, opt_other_theme == 1 ? "-charging" 
+			: "-plugged");
 	}
 	
 	return icon_name->str;
@@ -158,7 +160,6 @@ static void print_usage(void)
 		"  -h\t\tprint this help message\n"
 		"  -c\t\tchange tray icon theme (chane if you miss default icon)\n"
 		"  -v\t\ttray icon's tooltip will display extra info\n"
-		"  -i\t\tshow info about this application\n"
 		"  -t <time>\tset default time interval in seconds\n");
 	exit(EXIT_SUCCESS);
 }
@@ -168,7 +169,7 @@ int main(int argc, char ** argv)
 	Battery battery;
 	gint c;
 	
-	while((c = getopt(argc, argv, ":t:fv:h")) != -1) {
+	while((c = getopt(argc, argv, ":t:cv:h")) != -1) {
 		switch(c) {
 			case 't':
 				opt_time = atoi(optarg);
