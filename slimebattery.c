@@ -26,7 +26,7 @@
  
 /* #define DEBUG */
 #define ACPI_CMD "acpi"
-#define DEFAULT_ARRAY_SIZE 10
+#define DEFAULT_ARRAY_SIZE 3
 #define DEFAULT_TIME_UPDATE 2
 
 gint opt_verbose = 0; 
@@ -77,11 +77,13 @@ static gboolean update_status_tray(Battery * battery)
 {
 	gchar * icon_name = get_status_icon_name(battery);
 	gchar * acpi_out = get_acpi_output(ACPI_CMD);
-
+        
+        /*
 	if(acpi_out == NULL) {
 		g_error("unable to run '%s'.", ACPI_CMD);
 	}
-	
+        */
+
 	parse_acpi_output(battery, acpi_out);
 	
 	#ifdef DEBUG
@@ -145,26 +147,29 @@ static void create_tray_icon(Battery * battery)
 
 static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 {
-	gint i = 0, count = 0;
+	gint i = 0; 
 	gchar * t;
-	gchar * values_array[DEFAULT_ARRAY_SIZE];
+	gchar ** values_array;
 	
 	int pos = strchr(acpi_output, ':') - acpi_output;
 	t = strtok(acpi_output + pos + 1, ",");
-	while(t != NULL) {
-		values_array[i++] = t[0] == ' ' ? t + 1 : t;
-		t = strtok(NULL, ",");
-		count++;
-	}
-	for(i = 0; i < count; i++) {
-		if ((values_array[i][strlen(values_array[i]) - 1]) == '\n') {
-			values_array[i][strlen(values_array[i]) - 1] = '\0';
-		}
-	}
 	
+        values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
+
+        while(t != NULL) {
+                values_array[i++] = t[0] == ' ' ? t + 1 : t;
+		t = strtok(NULL, ",");
+	}
+        
+        if(values_array[2][strlen(values_array[2]) - 1] == '\n') {
+                values_array[2][strlen(values_array[2]) - 1] = '\0';
+        }
+
 	battery->status = values_array[0];
 	battery->percentage = atoi(values_array[1]);
 	battery->extra = values_array[2];
+
+        free(values_array);
 }
 	
 static gchar * get_acpi_output(const gchar * acpi_command)
@@ -191,7 +196,7 @@ int main(int argc, char ** argv)
 	Battery battery;
 	gint c;
 	
-	while((c = getopt(argc, argv, ":t:cv:h")) != -1) {
+	while((c = getopt(argc, argv, ":t:c:hv")) != -1) {
 		switch(c) {
 			case 't':
 				opt_time = atoi(optarg);
