@@ -37,6 +37,7 @@ gint opt_popup = 0;
 typedef enum batteryState {
 	CHARGING,
 	DISCHARGING,
+        FULL,
 } BatteryState;
 
 typedef struct batteryTray {
@@ -69,7 +70,7 @@ static void update_status_battery(Battery * battery)
 	else if(strcmp(battery->status, "Discharging") == 0)
 		battery->batteryState = DISCHARGING;
 	else
-		battery->batteryState = DISCHARGING;
+		battery->batteryState = FULL;
 }
 
 static gboolean update_status_tray(Battery * battery)
