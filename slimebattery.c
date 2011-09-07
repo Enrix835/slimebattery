@@ -20,26 +20,31 @@
  */
 
 #include <gtk/gtk.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <getopt.h>
  
 /* #define DEBUG */
 #define ACPI_CMD "acpi"
 #define DEFAULT_ARRAY_SIZE 3
 #define DEFAULT_TIME_UPDATE 2
 
+gint opt_text_mode = 0;
+gint opt_text_size;
+gint opt_colors = 0;
+gchar * text_color = "white";
 gint opt_verbose = 0; 
 gint opt_time = DEFAULT_TIME_UPDATE;
 gint opt_other_theme = 0;
-gint opt_popup = 0;
 
 typedef enum batteryState {
 	CHARGING,
 	DISCHARGING,
-        FULL,
+    FULL,
 } BatteryState;
-
+	
 typedef struct batteryTray {
 	GtkStatusIcon * tray_icon;
 	gchar * tooltip;
@@ -54,9 +59,11 @@ typedef struct battery {
 	BatteryState batteryState;
 } Battery;
 
+
 static void update_status_battery(Battery * battery);
 static gboolean update_status_tray(Battery * battery);
 static gchar * get_status_icon_name(Battery * battery);
+static void draw_status_icon_pixbuf(Battery * battery);
 static void create_tray_icon(Battery * battery);
 static void create_tray_icon(Battery * battery);
 static void parse_acpi_output(Battery * battery, gchar * acpi_output);
@@ -75,14 +82,17 @@ static void update_status_battery(Battery * battery)
 
 static gboolean update_status_tray(Battery * battery)
 {
-	gchar * icon_name = get_status_icon_name(battery);
+	gchar * icon_name;
 	gchar * acpi_out = get_acpi_output(ACPI_CMD);
         
-        /*
+    if(opt_text_mode == 0) 
+		icon_name = get_status_icon_name(battery);
+    
+    /*
 	if(acpi_out == NULL) {
 		g_error("unable to run '%s'.", ACPI_CMD);
 	}
-        */
+    */
 
 	parse_acpi_output(battery, acpi_out);
 	
@@ -100,8 +110,11 @@ static gboolean update_status_tray(Battery * battery)
 	gtk_status_icon_set_tooltip_text(battery->batteryTray.tray_icon,
 		battery->batteryTray.tooltip);
 	
-	gtk_status_icon_set_from_icon_name(battery->batteryTray.tray_icon,
-		icon_name);
+	if(opt_text_mode == 0)
+		gtk_status_icon_set_from_icon_name(battery->batteryTray.tray_icon,
+			icon_name);
+	else
+		draw_status_icon_pixbuf(battery);
 	
 	return TRUE; 
 }
@@ -136,6 +149,7 @@ static void create_tray_icon(Battery * battery)
 {
 	battery->batteryTray.tray_icon = gtk_status_icon_new();
 	battery->batteryTray.tooltip = "slimebattery";
+	
 	gtk_status_icon_set_tooltip(battery->batteryTray.tray_icon, 
 		battery->batteryTray.tooltip);
 	gtk_status_icon_set_visible(battery->batteryTray.tray_icon, 
@@ -154,67 +168,119 @@ static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 	int pos = strchr(acpi_output, ':') - acpi_output;
 	t = strtok(acpi_output + pos + 1, ",");
 	
-        values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
-
-        while(t != NULL) {
-                values_array[i++] = t[0] == ' ' ? t + 1 : t;
+    values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
+    
+    while(t != NULL) {
+		values_array[i++] = t[0] == ' ' ? t + 1 : t;
 		t = strtok(NULL, ",");
 	}
         
-        if(values_array[2][strlen(values_array[2]) - 1] == '\n') {
-                values_array[2][strlen(values_array[2]) - 1] = '\0';
-        }
+    if(values_array[2][strlen(values_array[2]) - 1] == '\n') {
+		values_array[2][strlen(values_array[2]) - 1] = '\0';
+    }
 
 	battery->status = values_array[0];
 	battery->percentage = atoi(values_array[1]);
 	battery->extra = values_array[2];
 
-        free(values_array);
+    free(values_array);
 }
 	
 static gchar * get_acpi_output(const gchar * acpi_command)
 {
 	gchar * output;
-	GError * error;
+	GError * error = NULL;
 	
 	g_spawn_command_line_sync(acpi_command, &output, NULL, NULL, &error);
-	return error != NULL ? output : NULL;
+	return error == NULL ? output : NULL;
 } 
 
 static void print_usage(void)
 {
 	printf("usage: slimebattery <option> [...]\n"
-		"  -h\t\tprint this help message\n"
-		"  -c\t\tchange tray icon theme (chane if you miss default icon)\n"
-		"  -v\t\ttray icon's tooltip will display extra info\n"
-		"  -t <time>\tset default time interval in seconds\n");
+		"  --help\t\t\tprint this help message\n"
+		"  --change-icon\t\t\tchange tray icon theme (chane if you miss default icon)\n"
+		"  --verbose\t\t\ttray icon's tooltip will display extra info\n"
+		"  --colors\t\t\t(only in text-mode) change text color (green when it's full, red when it's low)\n"
+		"  --text-mode <font size>\tshow battery status in plain text mode\n"
+		"  --interval <time>\t\tcheck battery status at every specified seconds\n");
 	exit(EXIT_SUCCESS);
+}
+
+static void draw_status_icon_pixbuf(Battery * battery)
+{
+	GError * error = NULL;
+	GdkPixbuf * pixbuf;
+	GdkPixbufLoader * loader = gdk_pixbuf_loader_new_with_type("svg", &error);
+	
+	if(opt_colors == 1) {
+		if(battery->percentage < 20) {
+			text_color = "red";
+		} else if(battery->percentage > 80) {
+			text_color = "green";
+		} 
+	}
+	
+	gchar * svg_percentage_signed = g_strdup_printf(
+	"<svg width=\"100px\" height=\"100px\" viewbox=\"0 0 200 200\">"
+	"<text style=\"text-align:center;\" x=\"0\" y=\"60\" font-weight=\"bold\" fill=\"%s\" font-family=\"Sans\" font-size=\"%d\">%d%</text>"
+	"</svg>"
+	, text_color, opt_text_size, battery->percentage);
+	const gint len_svg_percentage_signed = strlen(svg_percentage_signed);
+	
+	gdk_pixbuf_loader_write(loader, (const guchar *) svg_percentage_signed, len_svg_percentage_signed, &error);
+	gdk_pixbuf_loader_close(loader, &error);
+
+	g_free(svg_percentage_signed);
+	
+	pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
+	gtk_status_icon_set_from_pixbuf(battery->batteryTray.tray_icon, pixbuf);
 }
 
 int main(int argc, char ** argv)
 {
 	Battery battery;
-	gint c;
-	
-	while((c = getopt(argc, argv, ":t:c:hv")) != -1) {
-		switch(c) {
-			case 't':
-				opt_time = atoi(optarg);
+        
+	gint opt, opt_index = 0;
+	static struct option long_options[] = {
+			{ "change-icon", 0, 0, 0 },
+			{ "text-mode", 1, 0, 0 },
+			{ "verbose", 0, 0, 0 },
+			{ "colors", 0, 0, 0 },
+			{ "interval", 1, 0, 0 },
+			{ "help", 0, 0, 0 },
+			{ 0, 0, 0, 0 }
+	};
+
+	while((opt = getopt_long(argc, argv, " ", long_options, &opt_index)) != -1) {
+		switch(opt) {
+			/* options don't have short args */
+			case 0:
+				if(strcmp("change-icon", long_options[opt_index].name) == 0) {
+					opt_other_theme = 1;
+				} else if(strcmp("text-mode", long_options[opt_index].name) == 0) {
+					opt_text_mode = 1;
+					opt_text_size = atoi(optarg);
+				} else if(strcmp("colors", long_options[opt_index].name) == 0) {
+					if(opt_text_mode == 1) {
+						opt_colors = 1;
+					} else {
+						g_warning("you must run %s in text-mode to use --colors option!\n", argv[0]);
+					}
+				} else if(strcmp("verbose", long_options[opt_index].name) == 0) {
+					opt_verbose = 1;
+				} else if(strcmp("interval", long_options[opt_index].name) == 0) {
+					opt_time = atoi(optarg);
+				} else if(strcmp("help", long_options[opt_index].name) == 0) {
+					print_usage();
+				}
 				break;
-			case 'c':
-				opt_other_theme = 1;
-				break;
-			case 'v':
-				opt_verbose = 1;
-				break;
-			case 'h':
-				print_usage();
-				break;
+				
 			default:
 				print_usage();
 		}
 	}
-	
+
 	gtk_init(&argc, &argv);
 	create_tray_icon(&battery);
 	gtk_main();
