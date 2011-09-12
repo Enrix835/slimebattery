@@ -28,9 +28,9 @@
  
 /* #define DEBUG */
 #define ACPI_CMD "acpi"
-#define DEFAULT_ARRAY_SIZE 3
 #define DEFAULT_TIME_UPDATE 2
 
+gint default_array_size = 3;
 gint opt_text_mode = 0;
 gint opt_text_size;
 gint opt_colors = 0;
@@ -168,7 +168,11 @@ static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 	int pos = strchr(acpi_output, ':') - acpi_output;
 	t = strtok(acpi_output + pos + 1, ",");
 	
-    values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
+	if(opt_text_mode == 1) {
+		default_array_size = 30;
+	}
+	
+    values_array = malloc(default_array_size * sizeof(gchar));
     
     while(t != NULL) {
 		values_array[i++] = t[0] == ' ' ? t + 1 : t;
