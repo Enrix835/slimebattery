@@ -27,7 +27,7 @@
 #include <getopt.h>
  
 /* #define DEBUG */
-#define ACPI_CMD "./acpi"
+#define ACPI_CMD "acpi"
 #define DEFAULT_ARRAY_SIZE 3
 #define DEFAULT_TIME_UPDATE 2
 
