@@ -27,10 +27,10 @@
 #include <getopt.h>
  
 /* #define DEBUG */
-#define ACPI_CMD "acpi"
+#define ACPI_CMD "./acpi"
+#define DEFAULT_ARRAY_SIZE 3
 #define DEFAULT_TIME_UPDATE 2
 
-gint default_array_size = 3;
 gint opt_text_mode = 0;
 gint opt_text_size;
 gint opt_colors = 0;
@@ -85,14 +85,7 @@ static gboolean update_status_tray(Battery * battery)
 	gchar * icon_name;
 	gchar * acpi_out = get_acpi_output(ACPI_CMD);
         
-    if(opt_text_mode == 0) 
-		icon_name = get_status_icon_name(battery);
-    
-    /*
-	if(acpi_out == NULL) {
-		g_error("unable to run '%s'.", ACPI_CMD);
-	}
-    */
+	if(opt_text_mode == 0) icon_name = get_status_icon_name(battery);
 
 	parse_acpi_output(battery, acpi_out);
 	
@@ -154,7 +147,7 @@ static void create_tray_icon(Battery * battery)
 		battery->batteryTray.tooltip);
 	gtk_status_icon_set_visible(battery->batteryTray.tray_icon, 
 		TRUE);
-                          
+                
 	update_status_tray(battery);
 	g_timeout_add_seconds(opt_time, (GSourceFunc) update_status_tray, battery);
 }
@@ -165,29 +158,27 @@ static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 	gchar * t;
 	gchar ** values_array;
 	
-	int pos = strchr(acpi_output, ':') - acpi_output;
-	t = strtok(acpi_output + pos + 1, ",");
-	
-	if(opt_text_mode == 1) {
-		default_array_size = 30;
+	if(strcmp(acpi_output, "") != 0) {
+		int pos = strchr(acpi_output, ':') - acpi_output;
+		t = strtok(acpi_output + pos + 1, ",");
+		
+		values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
+		
+		while(t != NULL) {
+			values_array[i++] = t[0] == ' ' ? t + 1 : t;
+			t = strtok(NULL, ",");
+		}
+		
+		if(values_array[2][strlen(values_array[2]) - 1] == '\n') {
+			values_array[2][strlen(values_array[2]) - 1] = '\0';
+		}
+		
+		battery->status = values_array[0];
+		battery->percentage = atoi(values_array[1]);
+		battery->extra = values_array[2];
+		
+		free(values_array);
 	}
-	
-    values_array = malloc(default_array_size * sizeof(gchar));
-    
-    while(t != NULL) {
-		values_array[i++] = t[0] == ' ' ? t + 1 : t;
-		t = strtok(NULL, ",");
-	}
-        
-    if(values_array[2][strlen(values_array[2]) - 1] == '\n') {
-		values_array[2][strlen(values_array[2]) - 1] = '\0';
-    }
-
-	battery->status = values_array[0];
-	battery->percentage = atoi(values_array[1]);
-	battery->extra = values_array[2];
-
-    free(values_array);
 }
 	
 static gchar * get_acpi_output(const gchar * acpi_command)

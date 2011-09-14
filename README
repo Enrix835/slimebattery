@@ -16,6 +16,13 @@ CLEAN AND UNINSTALL
 
   run in your terminal `make clean` to remove the bin and 
   `sudo make uninstall` to uninstall slimebattery
+
+INSTALL ON ARCH LINUX
+
+  if you're running arch linux, install slimebattery from aur
+  repositories using yaourt.
+  
+  `yaourt -S slimebattery-git`
   
 CREDITS
 
