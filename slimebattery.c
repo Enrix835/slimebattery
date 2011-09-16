@@ -59,7 +59,7 @@ typedef struct battery {
 	BatteryState batteryState;
 } Battery;
 
-
+static gint indexof(gchar * string, ghcar c);
 static void update_status_battery(Battery * battery);
 static gboolean update_status_tray(Battery * battery);
 static gchar * get_status_icon_name(Battery * battery);
@@ -69,6 +69,12 @@ static void create_tray_icon(Battery * battery);
 static void parse_acpi_output(Battery * battery, gchar * acpi_output);
 static char * get_acpi_output(const gchar * acpi_command);
 static void print_usage(void);
+
+static gint indexof(gchar * string, ghcar c)
+{
+	gchar p = strchr(string, c);
+	return p ? strchr(string, c) - string : -1;
+}
 
 static void update_status_battery(Battery * battery)
 {
@@ -159,7 +165,7 @@ static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 	gchar ** values_array;
 	
 	if(strcmp(acpi_output, "") != 0) {
-		int pos = strchr(acpi_output, ':') - acpi_output;
+		int pos = indexof(acpi_output, ':');
 		t = strtok(acpi_output + pos + 1, ",");
 		
 		values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
@@ -178,6 +184,10 @@ static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 		battery->extra = values_array[2];
 		
 		free(values_array);
+	} else {
+	  battery->status = " ";
+	  battery->percentage = 0;
+	  battery->extra = " ";
 	}
 }
 	
@@ -187,6 +197,9 @@ static gchar * get_acpi_output(const gchar * acpi_command)
 	GError * error = NULL;
 	
 	g_spawn_command_line_sync(acpi_command, &output, NULL, NULL, &error);
+	gint first_newline_index = indexof(output, '\n');
+	output[first_newline_index] = '\0';
+	
 	return error == NULL ? output : NULL;
 } 
 
