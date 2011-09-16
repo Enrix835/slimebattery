@@ -59,7 +59,7 @@ typedef struct battery {
 	BatteryState batteryState;
 } Battery;
 
-static gint indexof(gchar * string, ghcar c);
+static gint indexof(gchar * string, gchar c);
 static void update_status_battery(Battery * battery);
 static gboolean update_status_tray(Battery * battery);
 static gchar * get_status_icon_name(Battery * battery);
