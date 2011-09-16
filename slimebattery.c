@@ -72,7 +72,7 @@ static void print_usage(void);
 
 static gint indexof(gchar * string, gchar c)
 {
-	gchar p = strchr(string, c);
+	gchar * p = strchr(string, c);
 	return p ? strchr(string, c) - string : -1;
 }
 
