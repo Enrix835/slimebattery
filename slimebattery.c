@@ -70,7 +70,7 @@ static void parse_acpi_output(Battery * battery, gchar * acpi_output);
 static char * get_acpi_output(const gchar * acpi_command);
 static void print_usage(void);
 
-static gint indexof(gchar * string, ghcar c)
+static gint indexof(gchar * string, gchar c)
 {
 	gchar p = strchr(string, c);
 	return p ? strchr(string, c) - string : -1;
