@@ -15,7 +15,7 @@ slimebattery can show your battery percentage in different ways.
 
 	slimebattery --interval 60
 ###slimebattery in text mode showing extra information
-(http://goo.gl/ha8Ut)
+![slimebattery](http://goo.gl/ha8Ut "text mode")
 
 	slimebattery --text-mode --verbose --interval 10
 
