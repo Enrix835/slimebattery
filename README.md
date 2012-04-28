@@ -10,9 +10,9 @@ elementary and others).
 #Examples
 slimebattery can show your battery percentage in different ways.
 
-###slimebattery showing battery icon that updates data every minutes
+###slimebattery showing battery icon that updates data every minute
 	slimebattery --interval 60
-###slimebattery in text mode with extra information
+###slimebattery in text mode showing extra information
 	slimebattery --text-mode --verbose --interval 10
 
 #Requirements
@@ -30,5 +30,6 @@ slimebattery can show your battery percentage in different ways.
 #Credits
 
 Enrico "Enrix835" Trotta <enrico{DOT}trt{AT}gmail{DOT}com>
+
 Obviously: sed -e 's/{DOT}/./g' -e 's/{AT}/@/' README
   
