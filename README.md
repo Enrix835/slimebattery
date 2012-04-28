@@ -34,6 +34,7 @@ slimebattery can show your battery percentage in different ways.
 #Credits
 
 Enrico "Enrix835" Trotta 
+
 email: enrico{DOT}trt{AT}gmail{DOT}com
 
 Obviously: sed -e 's/{DOT}/./g' -e 's/{AT}/@/' README
