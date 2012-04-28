@@ -11,7 +11,7 @@ elementary and others).
 slimebattery can show your battery percentage in different ways.
 
 ###slimebattery showing battery icon that updates data every minute
-[(http://goo.gl/yNZ8D)]
+[!(http://goo.gl/yNZ8D)]
 
 	slimebattery --interval 60
 ###slimebattery in text mode showing extra information
