@@ -31,9 +31,12 @@
 #define DEFAULT_ARRAY_SIZE 3
 #define DEFAULT_TIME_UPDATE 2
 
+#define last_char(string) (strlen(values_array[1]) - 1)
+
 gint opt_text_mode = 0;
 gint opt_text_size;
 gint opt_colors = 0;
+gchar ** values_array;
 gchar * text_color = "white";
 gint opt_verbose = 0; 
 gint opt_time = DEFAULT_TIME_UPDATE;
@@ -102,7 +105,7 @@ static gboolean update_status_tray(Battery * battery)
 	update_status_battery(battery);
 		
 	battery->batteryTray.tooltip = g_strdup_printf("%s (%d%%) %s", 
-		battery->status, 
+		battery->status,
 		battery->percentage,
 		opt_verbose == 1 ? battery->extra : " ");
 		
@@ -161,29 +164,23 @@ static void create_tray_icon(Battery * battery)
 static void parse_acpi_output(Battery * battery, gchar * acpi_output)
 {
 	gint i = 0; 
-	gchar * t;
-	gchar ** values_array;
+	
+	gchar * temp;
 	
 	if(strcmp(acpi_output, "") != 0) {
 		int pos = indexof(acpi_output, ':');
-		t = strtok(acpi_output + pos + 1, ",");
 		
-		values_array = malloc(DEFAULT_ARRAY_SIZE * sizeof(gchar));
+		temp = acpi_output + pos + 2;
+		values_array = g_strsplit(temp, ", ", 0);
 		
-		while(t != NULL) {
-			values_array[i++] = t[0] == ' ' ? t + 1 : t;
-			t = strtok(NULL, ",");
-		}
-		
-		if(values_array[2][strlen(values_array[2]) - 1] == '\n') {
-			values_array[2][strlen(values_array[2]) - 1] = '\0';
+		if(values_array[1][last_char(values_array[1])] == '%') {
+			values_array[1][last_char(values_array[1])] = '\0';
 		}
 		
 		battery->status = values_array[0];
 		battery->percentage = atoi(values_array[1]);
 		battery->extra = values_array[2];
 		
-		free(values_array);
 	} else {
 	  battery->status = " ";
 	  battery->percentage = 0;
@@ -293,5 +290,6 @@ int main(int argc, char ** argv)
 	create_tray_icon(&battery);
 	gtk_main();
 	
+	g_strfreev(values_array);
 	return 0;
 }
